@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 // connect to the database
-$con = mysqli_connect('172.31.45.178:3306','elastic1','oag4Chai','prices')
+$con = mysqli_connect('paste_ip_here:3306','db_user_1','goal5Zhia','prices')
 or die(mysqli_error($con));
 // select a database:
 mysqli_select_db($con, 'prices')
