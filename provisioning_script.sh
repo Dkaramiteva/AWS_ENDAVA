@@ -44,7 +44,7 @@ chmod 400 $ssh_key
 echo "Creating EC2 instance in AWS"
 #echo "UID $uid"
 
-ec2_id=$(aws ec2 run-instances --image-id $aws_image_id --count 1 --instance-type $i_type --key-name $aws_key_name --security-group-ids $sec_id --subnet-id $sub_id --associate-public-ip-address --tag-specifications 'ResourceType=instance,Tags=[{Key=WatchTower,Value="$tag"},{Key=AutomatedID,Value="$uid"}]' | grep InstanceId | cut -d":" -f2 | cut -d'"' -f2)
+ec2_id=$(aws ec2 run-instances --image-id $aws_image_id --count 1 --instance-type $i_type --key-name $aws_key_name --security-group-$sub_id --associate-public-ip-address --tag-specifications 'ResourceType=instance,Tags=[{Key=WatchTower,Value="$tag"},{Key=Automatedp InstanceId | cut -d":" -f2 | cut -d'"' -f2)
 
 # Log date, time, random ID
 date >> logs.txt
@@ -54,20 +54,23 @@ echo ""
 
 echo "EC2 Instance ID: $ec2_id"
 #echo "Unique ID: $uid"
-elastic_ip=$(aws ec2 describe-instances --instance-ids $ec2_id --query 'Reservations[0].Instances[0].PublicIpAddress' | cut -d'"' -f2)
-echo -e "Elastic IP: $elastic_ip"
-echo $elastic_ip >> logs.txt
+database_ip=$(aws ec2 describe-instances --instance-ids $ec2_id --query 'Reservations[0].Instances[0].PublicIpAddress' | cut -d'"' -
+
+mysql_private_ip=$(aws ec2 describe-instances --instance-ids $ec2_id --query 'Reservations[0].Instances[0].PrivateIpAddress' | cut -
+
+echo -e "Elastic IP: $database_ip"
+echo $database_ip >> logs.txt
 echo "=====" >> logs.txt
 
 #echo "Copy paste the following command from this machine to SSH into the AWS EC2 instance"
 #echo ""
-#echo -e "\e[32m ssh -i $ssh_key ubuntu@$elastic_ip\033[0m"
+#echo -e "\e[32m ssh -i $ssh_key ubuntu@$database_ip\033[0m"
 echo ""
 countdown_timer=60
 echo "Please wait while your instance is being powered on..We are trying to ssh into the EC2 instance"
 echo "Copy/paste the below command to acess your EC2 instance via SSH from this machine. You may need this later"
 echo ""
-echo "\033[0;31m ssh -i $ssh_key ubuntu@$elastic_ip\033[0m"
+echo "\033[0;31m ssh -i $ssh_key ubuntu@$database_ip\033[0m"
 
 temp_cnt=${countdown_timer}
 while [[ ${temp_cnt} -gt 0 ]];
@@ -78,7 +81,7 @@ sleep 1
 done
 echo ""
 
-ssh -i $ssh_key ubuntu@$elastic_ip '
+ssh -i $ssh_key ubuntu@$database_ip '
 
 sudo apt-get update
 sudo apt-get install mysql-server
@@ -95,7 +98,7 @@ echo AFTER BIND ADDRESS ADDED
 
 exit;'
 
-echo "---The creation of the database and granting of the privileges require the private ip of the apache vm, and that's why they are done later in the procedure!---"
+echo "---The creation of the database and granting of the privileges require the private ip of the apache vm, and that's why they aredure!---"
 
 echo "-------------Creating second instance--------------"
 
@@ -118,7 +121,7 @@ chmod 400 $ssh_key2
 echo "Creating EC2 instance in AWS"
 #echo "UID $uid2"
 
-ec2_id2=$(aws ec2 run-instances --image-id $aws_image_id --count 1 --instance-type $i_type --key-name $aws_key_name2 --security-group-ids $sec_id --subnet-id $sub_id --associate-public-ip-address --tag-specifications 'ResourceType=instance,Tags=[{Key=WatchTower,Value="$tag"},{Key=AutomatedID,Value="$uid2"}]' | grep InstanceId | cut -d":" -f2 | cut -d'"' -f2)
+ec2_id2=$(aws ec2 run-instances --image-id $aws_image_id --count 1 --instance-type $i_type --key-name $aws_key_name2 --security-groud $sub_id --associate-public-ip-address --tag-specifications 'ResourceType=instance,Tags=[{Key=WatchTower,Value="$tag"},{Key=Automatgrep InstanceId | cut -d":" -f2 | cut -d'"' -f2)
 
 # Log date, time, random ID
 date >> logs.txt
@@ -128,20 +131,23 @@ echo ""
 
 echo "EC2 Instance ID: $ec2_id2"
 #echo "Unique ID: $uid2"
-elastic_ip2=$(aws ec2 describe-instances --instance-ids $ec2_id2 --query 'Reservations[0].Instances[0].PublicIpAddress' | cut -d'"' -f2)
-echo -e "Elastic IP: $elastic_ip2"
-echo $elastic_ip2 >> logs.txt
+web_ip=$(aws ec2 describe-instances --instance-ids $ec2_id2 --query 'Reservations[0].Instances[0].PublicIpAddress' | cut -d'"' -f2)
+
+web_private_ip=$(aws ec2 describe-instances --instance-ids $ec2_id2 --query 'Reservations[0].Instances[0].PrivateIpAddress' | cut -d
+
+echo -e "Elastic IP: $web_ip"
+echo $web_ip >> logs.txt
 echo "=====" >> logs.txt
 
 #echo "Copy paste the following command from this machine to SSH into the AWS EC2 instance"
 #echo ""
-#echo -e "\e[32m ssh -i $ssh_key2 ubuntu@$elastic_ip2\033[0m"
+#echo -e "\e[32m ssh -i $ssh_key2 ubuntu@$web_ip\033[0m"
 echo ""
 countdown_timer=60
 echo "Please wait while your instance is being powered on..We are trying to ssh into the EC2 instance"
 echo "Copy/paste the below command to acess your EC2 instance via SSH from this machine. You may need this later"
 echo ""
-echo "\033[0;31m ssh -i $ssh_key2 ubuntu@$elastic_ip2\033[0m"
+echo "\033[0;31m ssh -i $ssh_key2 ubuntu@$web_ip\033[0m"
 
 temp_cnt=${countdown_timer}
 while [[ ${temp_cnt} -gt 0 ]];
@@ -152,7 +158,7 @@ sleep 1
 done
 echo ""
 
-ssh -i $ssh_key2 ubuntu@$elastic_ip2 '
+ssh -i $ssh_key2 ubuntu@$web_ip '
 sudo apt update
 sudo apt install apache2
 sudo apt install php
@@ -160,13 +166,13 @@ sudo apt install libapache2-mod-php
 sudo apt-get update
 sudo apt-get install mysql-server php7.2-mysql
 
-sudo touch /var/www/html/table.php
-sudo chmod 777 /var/www/html/table.php
-
-
-
+sudo chmod 777 /var/www/html
 '
 
-echo "CREATE DATABASE prices; CREATE USER 'elastic1' IDENTIFIED BY 'oag4Chai'; GRANT ALL PRIVILEGES ON prices.* to elastic1@$elastic_ip2 IDENTIFIED BY 'oag4Chai'; FLUSH PRIVILEGES; USE prices; CREATE TABLE metals (name VARCHAR(100), price_usd_lb DOUBLE); INSERT INTO metals VALUES ('zinc',0.9811); INSERT INTO metals VALUES ('tin',13.6305); INSERT INTO metals VALUES ('copper',4.0531);" | ssh -i $ssh_key ubuntu@$elastic_ip "sudo mysql"
+echo "CREATE DATABASE prices; CREATE USER 'db_user_1' IDENTIFIED BY 'goal5Zhia'; GRANT ALL PRIVILEGES ON prices.* to db_user_1@$web_ 'goal5Zhia'; FLUSH PRIVILEGES; USE prices; CREATE TABLE metals (name VARCHAR(100), price_usd_lb DOUBLE); INSERT INTO metals VALUES INTO metals VALUES ('tin',13.6305); INSERT INTO metals VALUES ('copper',4.0531);" | ssh -i $ssh_key ubuntu@$database_ip "sudo mysql"
 
-echo 'sudo service mysql restart' | ssh -i $ssh_key ubuntu@$elastic_ip
+echo 'sudo service mysql restart' | ssh -i $ssh_key ubuntu@$database_ip
+
+sudo sed "s/paste_ip_here/$mysql_private_ip/g" template.php > simple_web_app.php
+sudo rsync -avzL -e "ssh -i dve-key.pem -p 22" ./simple_web_app.php  ubuntu@$web_ip:/var/www/html
+echo 'sudo service apache2 restart' | ssh -i $ssh_key2 ubuntu@$web_ip
